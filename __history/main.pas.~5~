@@ -1,0 +1,174 @@
+unit main;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics, activex,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, System.Net.URLClient,
+  System.Net.HttpClient, System.Net.HttpClientComponent, Vcl.StdCtrls,
+  Vcl.OleCtrls, SHDocVw, Vcl.ComCtrls, Vcl.ExtCtrls, Vcl.Grids, Vcl.ValEdit;
+
+type
+  TForm1 = class(TForm)
+    HttpClient: TNetHTTPClient;
+    HTTPRequest: TNetHTTPRequest;
+    Panel1: TPanel;
+    PC: TPageControl;
+    tsHTTPSource: TTabSheet;
+    mmResponse: TMemo;
+    StatusBar1: TStatusBar;
+    tsWebPage: TTabSheet;
+    wb: TWebBrowser;
+    tsHeards: TTabSheet;
+    Panel2: TPanel;
+    mmRequest: TMemo;
+    Splitter1: TSplitter;
+    Panel3: TPanel;
+    mmData: TMemo;
+    pcRequest: TPageControl;
+    TabSheet1: TTabSheet;
+    TabSheet2: TTabSheet;
+    Label1: TLabel;
+    leUsernameVarname: TLabeledEdit;
+    leUsernameValue: TLabeledEdit;
+    lePasswordValue: TLabeledEdit;
+    lePasswordVarname: TLabeledEdit;
+    Label2: TLabel;
+    leProxyServer: TLabeledEdit;
+    leProxyPort: TLabeledEdit;
+    Panel4: TPanel;
+    cbbMethod: TComboBox;
+    edtURL: TEdit;
+    Button1: TButton;
+    leProxyUsername: TLabeledEdit;
+    leProxyPassword: TLabeledEdit;
+    procedure Button1Click(Sender: TObject);
+  private
+    { Private declarations }
+    procedure FillProxy;
+    procedure ClearProxy;
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.Button1Click(Sender: TObject);
+var
+  postdata: string;
+
+  ResponseData: TStringStream;
+  i: integer;
+
+  ir: IHTTPResponse;
+begin
+
+  if leProxyServer.Text <> '' then
+  begin
+    HttpClient.ProxySettings := TProxySettings.Create(leProxyServer.Text,
+      strtoint(leProxyPort.Text), '', '', '');
+  end;
+
+  case cbbMethod.ItemIndex of
+    0:
+      begin
+        // GET
+        ResponseData := TStringStream.Create('', TEncoding.UTF8);
+        ResponseData.Clear;
+
+        ir := HttpClient.get(edtURL.Text, ResponseData);
+
+      end;
+    1:
+      begin
+        // POST
+
+        ResponseData := TStringStream.Create('', TEncoding.UTF8);
+        ResponseData.Clear;
+        ir := HttpClient.Post(edtURL.Text, mmData.lines, ResponseData,
+          TEncoding.UTF8);
+
+      end;
+    2:
+      begin
+
+      end;
+  end;
+
+  mmResponse.lines.Add('==Status============================');
+  mmResponse.lines.Add(inttostr(ir.StatusCode) + ' ' + ir.StatusText);
+  mmResponse.lines.Add('');
+
+  mmResponse.lines.Add('==header============================');
+
+  for i := 0 to length(ir.Headers) do
+  begin
+  if ir.Headers[i].Name <> '' then
+    mmResponse.lines.Add(ir.Headers[i].Name + ': ' + ir.Headers[i].Value);
+
+  end;
+  mmResponse.lines.Add('');
+
+
+  mmResponse.lines.Add('==Cookies============================');
+  for i := 0 to length(HttpClient.CookieManager.Cookies) - 1 do
+  begin
+
+      mmResponse.lines.Add(HttpClient.CookieManager.Cookies[i].ToString);
+  end;
+  mmResponse.lines.Add('');
+
+  i := length(ResponseData.DataString);
+
+  mmResponse.lines.Add('==Response===(length: '+ inttostr(i) +')================');
+  mmResponse.lines.Add(ResponseData.DataString);
+  mmResponse.lines.Add('');
+
+//  wb.Navigate('about:blank');
+//  if Assigned(wb.Document) then
+//  begin
+//    ResponseData.Seek(0, 0);
+//
+//    (wb.Document as IPersistStreamInit)
+//      .Load(TStreamAdapter.Create(ResponseData));
+//
+//  end;
+//  wb.Stop;
+
+  freeandnil(ResponseData);
+  ir := nil;
+
+end;
+
+procedure TForm1.ClearProxy;
+begin
+
+  if assigned(HTTPClient.ProxySettings) then freeandnil(HTTPClient.ProxySettings);
+
+
+end;
+
+
+procedure TForm1.FillProxy;
+begin
+
+  ClearProxy;
+
+  HTTPClient.ProxySettings.Create('http://direct');
+
+
+  HTTPClient.ProxySettings.Host     := leProxyServer.Text;
+  HTTPClient.ProxySettings.Port     := inttostr(leProxyPort.text);
+  HTTPClient.ProxySettings.UserName := leProxyUsername.Text;
+  HTTPClient.ProxySettings.Password := leProxyPassword.Text;
+
+
+end;
+
+end.

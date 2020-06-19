@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<BorlandProject>
+  <Transactions>
+    <Transaction>2019/04/17 17:00:37.185,=D:\mydoc\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2019/04/18 17:48:27.843,D:\myprg\delphi\HTTPClient\main.pas=D:\mydoc\Embarcadero\Studio\Projects\Unit1.pas</Transaction>
+    <Transaction>2019/04/18 17:48:27.843,D:\myprg\delphi\HTTPClient\main.dfm=D:\mydoc\Embarcadero\Studio\Projects\Unit1.dfm</Transaction>
+    <Transaction>2019/04/18 17:48:39.447,D:\myprg\delphi\HTTPClient\HTTPConstructor.dproj=D:\mydoc\Embarcadero\Studio\Projects\Project1.dproj</Transaction>
+  </Transactions>
+</BorlandProject>

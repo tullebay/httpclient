@@ -1,0 +1,138 @@
+unit main;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
+  System.Classes, Vcl.Graphics,  activex,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, System.Net.URLClient,
+  System.Net.HttpClient, System.Net.HttpClientComponent, Vcl.StdCtrls,
+  Vcl.OleCtrls, SHDocVw, Vcl.ComCtrls, Vcl.ExtCtrls, Vcl.Grids, Vcl.ValEdit;
+
+type
+  TForm1 = class(TForm)
+    HttpClient: TNetHTTPClient;
+    HTTPRequest: TNetHTTPRequest;
+    Panel1: TPanel;
+    PC: TPageControl;
+    Button1: TButton;
+    tsHTTPSource: TTabSheet;
+    mmResponse: TMemo;
+    StatusBar1: TStatusBar;
+    tsWebPage: TTabSheet;
+    wb: TWebBrowser;
+    tsHeards: TTabSheet;
+    Panel2: TPanel;
+    mmRequest: TMemo;
+    edtURL: TEdit;
+    Splitter1: TSplitter;
+    Panel3: TPanel;
+    mmData: TMemo;
+    ledtProxyServer: TLabeledEdit;
+    ledtProxyPort: TLabeledEdit;
+    cbbMethod: TComboBox;
+    procedure Button1Click(Sender: TObject);
+  private
+    { Private declarations }
+  public
+    { Public declarations }
+  end;
+
+var
+  Form1: TForm1;
+
+implementation
+
+{$R *.dfm}
+
+procedure TForm1.Button1Click(Sender: TObject);
+var
+  postdata: string;
+
+  ResponseData: TStringStream;
+  i: integer;
+
+  ir:IHTTPResponse;
+begin
+
+  if ledtProxyServer.Text <>'' then
+    begin
+      HTTPClient.ProxySettings := TProxySettings.Create(ledtProxyServer.text,
+                                                        strtoint(ledtProxyPort.Text),
+                                                        '',
+                                                        '',
+                                                        '');
+    end;
+
+
+
+  case cbbMethod.ItemIndex of
+  0:begin
+       //GET
+      ResponseData := TStringStream.Create('', TEncoding.UTF8);
+      ResponseData.Clear;
+
+     ir := HTTPClient.get(edtURL.Text,
+                     ResponseData
+                     );
+
+  end;
+  1:begin
+     //POST
+
+     ResponseData := TStringStream.Create('', TEncoding.UTF8);
+     ResponseData.Clear;
+     ir := HttpClient.Post(edtURL.text,
+                           mmData.lines,
+                           ResponseData,
+                           TEncoding.UTF8);
+
+  end;
+  2:begin
+
+  end;
+  end;
+
+
+
+  mmResponse.Lines.Add(inttostr(ir.StatusCode)+' '+ir.StatusText);
+
+
+  for I := 0 to length(ir.Headers) do
+    begin
+      mmResponse.Lines.Add(ir.Headers[i].Name+ ': '+ir.Headers[i].Value   );
+
+    end;
+
+
+
+
+
+  for i := 0 to length(HttpClient.CookieManager.Cookies) - 1 do
+     begin
+       if HttpClient.CookieManager.Cookies[i].Name <>'' then
+        mmResponse.Lines.Add(HttpClient.CookieManager.Cookies[i].ToString);
+     end;
+
+
+  mmResponse.Lines.Add( ResponseData.DataString );
+
+
+  wb.Navigate('about:blank');
+ if  Assigned(wb.Document)  then
+   begin
+    ResponseData.Seek(0,0);
+
+   (wb.Document  as  IPersistStreamInit).Load(TStreamAdapter.Create(ResponseData));
+
+    end;
+
+
+
+    freeandnil(ResponseData);
+    ir := nil;
+
+
+end;
+
+end.
